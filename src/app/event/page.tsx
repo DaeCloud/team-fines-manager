@@ -6,6 +6,7 @@ import { Fine } from "@/types";
 import { Beer, CheckCircle, ArrowRightLeft, Users, Wifi, WifiOff } from "lucide-react";
 import { io, Socket } from "socket.io-client";
 import { format } from "date-fns";
+import Link from "next/link";
 
 function getSessionId(): string {
   if (typeof window === "undefined") return "";
@@ -112,14 +113,14 @@ export default function EventPage() {
       <div className="min-h-screen event-bg flex flex-col" style={{ fontFamily: "var(--font-body)" }}>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: "var(--border-subtle)" }}>
-          <div className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "var(--accent-primary)" }}>
               <Beer size={18} className="text-white" />
             </div>
             <span className="text-lg font-bold" style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)" }}>
               Event Night 🍺
             </span>
-          </div>
+          </Link>
           <div className="flex items-center gap-4">
             {eventActive && (
               <div className="text-sm" style={{ color: "var(--text-muted)" }}>
