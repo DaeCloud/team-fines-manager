@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model AdminUser {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("admin_users")
+}
+
+model Setting {
+  id                 Int      @id @default(autoincrement())
+  globalPasswordHash String?  @map("global_password_hash")
+  eventActive        Boolean  @default(false) @map("event_active")
+  eventCurrentFineId Int?     @map("event_current_fine_id")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  @@map("settings")
+}
+
+model TeamMember {
+  id          Int          @id @default(autoincrement())
+  name        String
+  createdAt   DateTime     @default(now()) @map("created_at")
+  active      Boolean      @default(true)
+  fineMembers FineMember[]
+  reversedTo  Fine[]       @relation("ReversedTo")
+
+  @@map("team_members")
+}
+
+model Fine {
+  id                 Int          @id @default(autoincrement())
+  reason             String       @db.Text
+  fineDate           DateTime?    @map("fine_date")
+  createdAt          DateTime     @default(now()) @map("created_at")
+  status             FineStatus   @default(pending)
+  reversedToMemberId Int?         @map("reversed_to_member_id")
+  eventProcessedAt   DateTime?    @map("event_processed_at")
+  fineMembers        FineMember[]
+  votes              EventVote[]
+  reversedToMember   TeamMember?  @relation("ReversedTo", fields: [reversedToMemberId], references: [id])
+
+  @@map("fines")
+}
+
+enum FineStatus {
+  pending
+  accepted
+  reversed
+  skipped
+}
+
+model FineMember {
+  id       Int        @id @default(autoincrement())
+  fineId   Int        @map("fine_id")
+  memberId Int        @map("member_id")
+  fine     Fine       @relation(fields: [fineId], references: [id], onDelete: Cascade)
+  member   TeamMember @relation(fields: [memberId], references: [id])
+
+  @@map("fine_members")
+}
+
+model EventVote {
+  id        Int      @id @default(autoincrement())
+  fineId    Int      @map("fine_id")
+  sessionId String   @map("session_id")
+  vote      VoteType
+  createdAt DateTime @default(now()) @map("created_at")
+  fine      Fine     @relation(fields: [fineId], references: [id], onDelete: Cascade)
+
+  @@unique([fineId, sessionId])
+  @@map("event_votes")
+}
+
+enum VoteType {
+  accept
+  reverse
+}

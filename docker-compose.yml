@@ -1,0 +1,46 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: mysql://fines_user:fines_pass@db:3306/fines_db
+      JWT_SECRET: "change-me-to-a-secure-secret-in-production"
+      GLOBAL_SESSION_SECRET: "change-me-to-another-secure-secret"
+      NEXTAUTH_URL: "http://localhost:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - fines-network
+
+  db:
+    image: mariadb:11
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: fines_db
+      MYSQL_USER: fines_user
+      MYSQL_PASSWORD: fines_pass
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - fines-network
+
+volumes:
+  db_data:
+
+networks:
+  fines-network:
+    driver: bridge
