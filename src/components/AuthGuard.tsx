@@ -17,10 +17,10 @@ export default function AuthGuard({
     fetch("/api/auth")
       .then((r) => r.json())
       .then((d) => {
-        if (!d.isTeamAuthed) {
-          router.replace("/login");
-        } else if (requireAdmin && !d.isAdminAuthed) {
+        if (requireAdmin && !d.isAdminAuthed) {
           router.replace("/admin/login");
+        } else if (!d.isTeamAuthed) {
+          router.replace("/login");
         } else {
           setChecking(false);
         }
